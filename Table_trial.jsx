@@ -18,6 +18,7 @@ export default function TrainingTable() {
   const [rows, setRows] = useState([]);
   const [selectedModule, setSelectedModule] = useState("");
   const [customInput, setCustomInput] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   // ✅ Add Standard Module
   const addModule = () => {
@@ -91,8 +92,22 @@ export default function TrainingTable() {
     setRows(rows.map(r => r.id === id ? { ...r, [field]: value } : r));
   };
 
+  // Submit / Edit handlers
+  const handleSubmit = () => {
+    if (rows.length === 0) {
+      alert("Add at least one module before submitting");
+      return;
+    }
+    setIsSubmitted(true);
+  };
+
+  const handleEdit = () => {
+    setIsSubmitted(false);
+  };
+
   // ✅ Drag
   const onDragStart = (e, index) => {
+    if (isSubmitted) return;
     e.dataTransfer.setData("text/plain", String(index));
     e.dataTransfer.effectAllowed = "move";
   };
@@ -147,6 +162,7 @@ export default function TrainingTable() {
                 }
               ]);
             }}
+            disabled={isSubmitted}
             style={{ padding: 8, width: 250, border: "1px solid #ccc", borderRadius: 6 }}
           >
             <option value=""> Select a Training Module </option>
@@ -154,7 +170,7 @@ export default function TrainingTable() {
               <option key={m} value={m}>{m}</option>
             ))}
           </select>
-          <button onClick={addModule} style={{ marginLeft: 5 }}>+</button>
+          <button onClick={addModule} style={{ marginLeft: 5 }} disabled={isSubmitted}>+</button>
         </div>
 
         <div>
@@ -163,9 +179,10 @@ export default function TrainingTable() {
             value={customInput}
             onChange={(e) => setCustomInput(e.target.value)}
             placeholder="Type here..."
+            disabled={isSubmitted}
             style={{ padding: 8, border: '1px solid #ccc', borderRadius: 6 }}
           />
-          <button onClick={addCustom} style={{ marginLeft: 5 }}>Add</button>
+          <button onClick={addCustom} style={{ marginLeft: 5 }} disabled={isSubmitted}>Add</button>
         </div>
 
       </div>
@@ -190,8 +207,8 @@ export default function TrainingTable() {
               onDrop={(e) => onDrop(e, index)}
             >
               <td
-                style={{ ...tdStyle, cursor: "grab", width: 60, textAlign: "center" }}
-                draggable
+                style={{ ...tdStyle, cursor: isSubmitted ? "default" : "grab", width: 60, textAlign: "center" }}
+                draggable={!isSubmitted}
                 onDragStart={(e) => onDragStart(e, index)}
                 title="Drag to reorder"
               >
@@ -200,18 +217,21 @@ export default function TrainingTable() {
 
               <td style={tdStyle}>
                 {row.module}
-                <span
-                  onClick={() => removeRow(row.id)}
-                  style={{ color: "red", marginLeft: 10, cursor: "pointer" }}
-                >
-                  ❌
-                </span>
+                {!isSubmitted && (
+                  <span
+                    onClick={() => removeRow(row.id)}
+                    style={{ color: "red", marginLeft: 10, cursor: "pointer" }}
+                  >
+                    ❌
+                  </span>
+                )}
               </td>
 
               <td style={tdStyle}>
                 <select
                   value={row.mode}
                   onChange={(e) => updateRow(row.id, "mode", e.target.value)}
+                  disabled={isSubmitted}
                   style={{ padding: 6, border: '1px solid #ccc', borderRadius: 4 }}
                 >
                   <option value="">Select</option>
@@ -225,6 +245,7 @@ export default function TrainingTable() {
                   type="number"
                   value={row.participants}
                   onChange={(e) => updateRow(row.id, "participants", e.target.value)}
+                  disabled={isSubmitted}
                   style={{ padding: 6, width: "100%", boxSizing: "border-box", border: '1px solid #ccc', borderRadius: 4 }}
                 />
               </td>
@@ -233,6 +254,7 @@ export default function TrainingTable() {
                 <input
                   value={row.impact}
                   onChange={(e) => updateRow(row.id, "impact", e.target.value)}
+                  disabled={isSubmitted}
                   style={{ padding: 6, width: "100%", boxSizing: "border-box", border: '1px solid #ccc', borderRadius: 4 }}
                 />
               </td>
@@ -245,17 +267,33 @@ export default function TrainingTable() {
         Drag and drop rows to re-order priority.
       </p>
 
-      <button
-        style={{
-          background: "green",
-          color: "white",
-          padding: "10px 20px",
-          float: "right",
-          marginTop: 10
-        }}
-      >
-        Submit Selections
-      </button>
+      {!isSubmitted ? (
+        <button
+          onClick={handleSubmit}
+          style={{
+            background: "green",
+            color: "white",
+            padding: "10px 20px",
+            float: "right",
+            marginTop: 10
+          }}
+        >
+          Submit Selections
+        </button>
+      ) : (
+        <button
+          onClick={handleEdit}
+          style={{
+            background: "orange",
+            color: "white",
+            padding: "10px 20px",
+            float: "right",
+            marginTop: 10
+          }}
+        >
+          Edit Table
+        </button>
+      )}
     </div>
   );
 }
